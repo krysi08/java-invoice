@@ -12,13 +12,22 @@ public class Invoice {
 
     public void addProduct(Product product) {
 
+        if(product == null){
+            throw new IllegalArgumentException("Product cannot be null");
+
+        }
 
         this.products.put(product,1);
     }
 
     public void addProduct(Product product, Integer quantity) {
 
+        if(quantity == null || quantity <= 0 || product == null ){
+            throw new IllegalArgumentException("The Quantity is null, below zero product cannot be null");
+        }
+
         products.put(product,quantity);
+
 
     }
 
