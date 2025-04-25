@@ -1,20 +1,28 @@
 package pl.edu.agh.mwo.invoice;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.junit.jupiter.api.BeforeEach;
 import pl.edu.agh.mwo.invoice.Invoice;
 import pl.edu.agh.mwo.invoice.product.DairyProduct;
 import pl.edu.agh.mwo.invoice.product.OtherProduct;
 import pl.edu.agh.mwo.invoice.product.Product;
 import pl.edu.agh.mwo.invoice.product.TaxFreeProduct;
 
+
+import static org.junit.jupiter.api.Assertions.*;
+
 public class InvoiceTest {
     private Invoice invoice;
+    private Product product;
 
     @Before
     public void createEmptyInvoiceForTheTest() {
@@ -124,5 +132,99 @@ public class InvoiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAddingNullProduct() {
         invoice.addProduct(null);
+    }
+
+    @BeforeEach
+    public void resetCounter() throws Exception {
+        Field counterField = Invoice.class.getDeclaredField("counter");
+        counterField.setAccessible(true);
+        counterField.set(null, 0);
+    }
+
+    @Test
+    public void firstInvoiceHasNumberOne() {
+        Invoice inv = new Invoice();
+        assertEquals(2, inv.getInvoiceNumber(), "Pierwsza faktura powinna mieć numer 2");
+    }
+
+    @Test
+    public void sequentialInvoicesHaveIncrementingNumbers() {
+        Invoice inv1 = new Invoice();
+        Invoice inv2 = new Invoice();
+        Invoice inv3 = new Invoice();
+
+        assertEquals(2, inv1.getInvoiceNumber(), "Pierwsza faktura = 2");
+        assertEquals(3, inv2.getInvoiceNumber(), "Druga faktura = 3");
+        assertEquals(4, inv3.getInvoiceNumber(), "Trzecia faktura = 4");
+    }
+
+    @Test
+    public void invoiceNumbersAreUnique() {
+        Invoice inv1 = new Invoice();
+        Invoice inv2 = new Invoice();
+        assertNotEquals(inv1.getInvoiceNumber(), inv2.getInvoiceNumber(),
+                "Dwie różne faktury nie mogą mieć tego samego numeru");
+    }
+
+    @Test
+    public void manyInvoicesProduceUniqueNumbers() {
+        int n = 10;
+        Set<Integer> seen = new HashSet<>();
+        for (int i = 0; i < n; i++) {
+            Invoice inv = new Invoice();
+            boolean added = seen.add(inv.getInvoiceNumber());
+            assertTrue(added, "Numer faktury " + inv.getInvoiceNumber() + " jest duplikatem");
+        }
+        assertEquals(n, seen.size(), "Powinno być dokładnie " + n + " unikalnych numerów");
+    }
+
+
+    @Test
+    public void testDetailsMultipleProducts() {
+        Invoice invoice = new Invoice();
+        Product bread = new Product("Chleb", new BigDecimal("5.00"), new BigDecimal("0.23"));
+        Product milk  = new Product("Mleko", new BigDecimal("3.50"), new BigDecimal("0.23"));
+
+        invoice.addProduct(bread, 2);
+        invoice.addProduct(milk, 3);
+
+        String expected =
+                "No. Invoice 1\n" +
+                        "Chleb,  Quantity: 2, Price: 5.00\n" +
+                        "Mleko,  Quantity: 3, Price: 3.50\n" +
+                        "No. Positions: 2";
+
+        assertEquals(expected, invoice.getInvoiceDetails());
+    }
+
+    @Test
+    public void testEmptyInvoiceDetails() {
+        Invoice invoice = new Invoice();
+
+        String expected =
+                "No. Invoice 1\n" +
+                        "No. Positions: 0";
+
+        assertEquals(expected, invoice.getInvoiceDetails());
+    }
+    @Test
+    public void addingSameProductTwiceIncreasesQuantityNotLines() {
+        Invoice invoice = new Invoice();
+        Product bread = new Product("Chleb", new BigDecimal("5.00"), new BigDecimal("0.23"));
+
+
+        invoice.addProduct(bread, 1);
+
+        invoice.addProduct(bread, 2);
+
+
+        String details = invoice.getInvoiceDetails();
+
+        String expected =
+                "Invoice number 1\n" +
+                        "Chleb,  Quantity: 2, Price: 5.00\n" +
+                        "No. Positions: 1";
+
+        assertEquals(expected, details);
     }
 }

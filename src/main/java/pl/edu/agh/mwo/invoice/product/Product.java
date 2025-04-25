@@ -2,14 +2,14 @@ package pl.edu.agh.mwo.invoice.product;
 
 import java.math.BigDecimal;
 
-public abstract class Product {
+public class Product {
     private final String name;
 
     private final BigDecimal price;
 
     private final BigDecimal taxPercent;
 
-    protected Product(String name, BigDecimal price, BigDecimal tax) {
+    public Product(String name, BigDecimal price, BigDecimal tax) {
         if (name == null || name.equals("") || price == null || tax == null
                 || tax.compareTo(new BigDecimal(0)) < 0
                 || price.compareTo(new BigDecimal(0)) < 0) {
