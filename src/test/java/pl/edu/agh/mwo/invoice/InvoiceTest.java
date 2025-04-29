@@ -93,6 +93,7 @@ public class InvoiceTest {
         invoice.addProduct(new DairyProduct("Sweet", new BigDecimal("100")));
 
         invoice.addProduct(new OtherProduct("Chips", new BigDecimal("10")));
+
         Assert.assertThat(new BigDecimal("320.30"), Matchers.comparesEqualTo(invoice.getGrossTotal()));
     }
 
