@@ -1,18 +1,17 @@
 package pl.edu.agh.mwo.invoice.product;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class Product {
     private final String name;
-
     private final BigDecimal price;
-
     private final BigDecimal taxPercent;
 
     public Product(String name, BigDecimal price, BigDecimal tax) {
         if (name == null || name.equals("") || price == null || tax == null
-                || tax.compareTo(new BigDecimal(0)) < 0
-                || price.compareTo(new BigDecimal(0)) < 0) {
+                || tax.compareTo(BigDecimal.ZERO) < 0
+                || price.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException();
         }
         this.name = name;
@@ -33,6 +32,8 @@ public class Product {
     }
 
     public BigDecimal getPriceWithTax() {
-        return price.multiply(taxPercent).add(price);
+        BigDecimal multiplier = BigDecimal.ONE.add(taxPercent);
+        BigDecimal taxed = price.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+        return taxed;
     }
 }
